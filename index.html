@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop ACC & Vòng Quay Kim Cương</title>
+    <style>
+        body {
+            text-align: center;
+            background: url('https://f59-zpg-r.zdn.vn/jpg/3430470650401998514/b1dca104f172412c1863.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <h2 id="title">Đăng Nhập</h2>
+
+    <div id="loginForm">
+        <input type="text" id="username" placeholder="Tên đăng nhập" required>
+        <input type="password" id="password" placeholder="Mật khẩu" required>
+        <button onclick="login()">Đăng Nhập</button>
+        <p>Chưa có tài khoản? <a href="#" onclick="toggleForm()">Đăng ký</a></p>
+    </div>
+
+    <div id="registerForm" style="display: none;">
+        <input type="text" id="newUsername" placeholder="Tên tài khoản" required>
+        <input type="password" id="newPassword" placeholder="Mật khẩu" required>
+        <button onclick="register()">Đăng Ký</button>
+        <p>Đã có tài khoản? <a href="#" onclick="toggleForm()">Đăng nhập</a></p>
+    </div>
+
+    <div id="shop" style="display: none;">
+        <h2>Shop Bán ACC</h2>
+        <button onclick="buyACC()">Mua Tài Khoản Ngẫu Nhiên</button>
+        <button onclick="spinWheel()">Vòng Quay Kim Cương</button>
+        <h3>Vòng Quay Kim Cương (1K/Lượt)</h3>
+        <p id="spinResult"></p>
+    </div>
+
+    <p id="message"></p>
+
+    <script>
+        function toggleForm() {
+            document.getElementById("loginForm").style.display = 
+                document.getElementById("loginForm").style.display === "none" ? "block" : "none";
+            document.getElementById("registerForm").style.display = 
+                document.getElementById("registerForm").style.display === "none" ? "block" : "none";
+            document.getElementById("title").textContent = 
+                document.getElementById("loginForm").style.display === "none" ? "Đăng Ký" : "Đăng Nhập";
+        }
+
+        async function login() {
+            let username = document.getElementById("username").value;
+            let password = document.getElementById("password").value;
+
+            let response = await fetch("users.json");
+            let users = await response.json();
+
+            if (users[username] && users[username].password === password) {
+                localStorage.setItem("loggedInUser", username);
+                alert("Đăng nhập thành công!");
+                document.getElementById("shop").style.display = "block";
+            } else {
+                document.getElementById("message").textContent = "Sai tài khoản hoặc mật khẩu!";
+            }
+        }
+
+        async function register() {
+            let newUsername = document.getElementById("newUsername").value;
+            let newPassword = document.getElementById("newPassword").value;
+            let user = localStorage.getItem("loggedInUser");
+
+            if (user !== "admin") {
+                alert("Chỉ admin mới có quyền tạo tài khoản!");
+                return;
+            }
+
+            let response = await fetch("users.json");
+            let users = await response.json();
+
+            if (users[newUsername]) {
+                document.getElementById("message").textContent = "Tên tài khoản đã tồn tại!";
+                return;
+            }
+
+            users[newUsername] = { "password": newPassword, "role": "user" };
+
+            fetch("save_users.php", {
+                method: "POST",
+                body: JSON.stringify(users),
+                headers: { "Content-Type": "application/json" }
+            }).then(() => {
+                alert("Đăng ký thành công!");
+                window.location.href = "index.html";
+            });
+        }
+
+        function buyACC() {
+            let accPrices = [50, 70, 100, 200, 500];
+            let price = accPrices[Math.floor(Math.random() * accPrices.length)];
+            alert("Bạn đã mua ACC với giá " + price + "K!");
+        }
+
+        function spinWheel() {
+            let chance = Math.random();
+            let diamondAmount;
+
+            if (chance < 0.001) {
+                diamondAmount = Math.floor(Math.random() * (5000 - 50 + 1) + 50);
+            } else {
+                diamondAmount = Math.floor(Math.random() * 20) + 1;
+            }
+
+            document.getElementById("spinResult").textContent = "Bạn nhận được " + diamondAmount + " kim cương!";
+        }
+    </script>
+
+</body>
+</html>
